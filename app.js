@@ -41,7 +41,9 @@ SerialOSC.prototype.start = function () {
       self.devices.push(device);
       device.start();
     }
-    self.emit('device:add', device);
+    device.on('connected', function () {
+      self.emit('device:add', device);
+    });
   });
 
   receiver.on('/serialosc/add', function () {
