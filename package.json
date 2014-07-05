@@ -1,16 +1,16 @@
 {
   "name": "node-serialosc",
   "version": "0.0.1",
-  "description": "serialosc interface",
+  "description": "monome serialosc interface",
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": {
     "name": "Tom Dinchak",
-    "email": "dinchak@gmail.com",
+    "email": "dinchak@gmail.com"
   },
-  "license": "ISC",
+  "keywords": "monome serialosc",
   "dependencies": {
     "osc-emitter": "^1.0.0",
     "osc-receiver": "^1.1.0",
