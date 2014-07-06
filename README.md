@@ -26,6 +26,7 @@ var serialosc = new SerialOSC({
   serialoscHost: 'locahost',
   serialoscPort: 12002
 });
+```
 
 # events
 
@@ -55,14 +56,18 @@ devices are passed through device:add events, you can also access an array of de
   connected: true
 }
 ```
+
 you can listen for key events from devices, the press object has x, y, and s attributes
+
 
 ```javascript
 device.on('key', function (press) {
   
 });
 ```
+
 you can send set, col, row, all, and map commands to a device
+
 
 ```javascript
 device.set(4, 6, 1);
