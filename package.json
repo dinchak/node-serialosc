@@ -2,7 +2,7 @@
   "name": "node-serialosc",
   "version": "0.0.1",
   "description": "monome serialosc interface",
-  "main": "app.js",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -11,6 +11,11 @@
     "email": "dinchak@gmail.com"
   },
   "keywords": "monome serialosc",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dinchak/node-serialosc.git"
+  },
   "dependencies": {
     "osc-emitter": "^1.0.0",
     "osc-receiver": "^1.1.0",
