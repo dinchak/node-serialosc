@@ -1,5 +1,5 @@
 {
-  "name": "node-serialosc",
+  "name": "serialosc",
   "version": "0.0.1",
   "description": "monome serialosc interface",
   "main": "index.js",
