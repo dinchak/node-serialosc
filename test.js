@@ -1,4 +1,4 @@
-var SerialOSC = require('./app');
+var SerialOSC = require('./index');
 
 var serialosc = new SerialOSC();
 serialosc.start();

@@ -2,7 +2,8 @@ var _ = require('underscore');
 var OscReceiver = require('osc-receiver');
 var OscEmitter = require('osc-emitter');
 var EventEmitter = require('events').EventEmitter;
-var Device = require('./lib/device');
+var Grid = require('./lib/grid');
+var Arc = require('./lib/arc');
 
 /**
  * Receives OSC messages from serialosc directly
@@ -101,7 +102,7 @@ SerialOSC.prototype.start = function () {
     // configure what we know about this device
     var deviceOpts = {
       id: arguments[0],
-      type: arguments[1],
+      model: arguments[1],
       host: self.host,
       deviceHost: self.serialoscHost,
       devicePort: arguments[2]
@@ -113,9 +114,10 @@ SerialOSC.prototype.start = function () {
     });
     // if not, create it, start it, add it to devices array
     if (!device) {
-      device = new Device(deviceOpts);
-      self.devices.push(device);
+      device = new Grid();
+      device.config(deviceOpts);
       device.start();
+      self.devices.push(device);
     }
     // when the device connects, let serialosc listeners know
     device.on('connected', function () {
