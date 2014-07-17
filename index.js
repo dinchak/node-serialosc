@@ -1,3 +1,8 @@
+/**
+ * @module node-serialosc
+ * @author Tom Dinchak <dinchak@gmail.com>
+ */
+
 var _ = require('underscore');
 var OscReceiver = require('osc-receiver');
 var OscEmitter = require('osc-emitter');
@@ -34,6 +39,7 @@ var serialoscEmitter = new OscEmitter();
  *                       (default 12002)
  * 
  * @param {Object} opts options object
+ * @constructor
  */
 var SerialOSC = function (opts) {
   /**
@@ -114,15 +120,22 @@ SerialOSC.prototype.start = function () {
     });
     // if not, create it, start it, add it to devices array
     if (!device) {
-      device = new Grid();
+      var encoders = deviceOpts.model.match(/monome arc (\d)/);
+      if (encoders) {
+        device = new Arc();
+        deviceOpts.type = 'arc';
+        deviceOpts.encoders = encoders[1];
+      } else {
+        device = new Grid();
+        deviceOpts.type = 'grid';
+      }
       device.config(deviceOpts);
       device.start();
       self.devices.push(device);
+      device.on('initialized', function () {
+        self.emit('device:add', device);
+      });
     }
-    // when the device connects, let serialosc listeners know
-    device.on('connected', function () {
-      self.emit('device:add', device);
-    });
   });
 
   // when serialosc detects a device has been plugged in
