@@ -120,7 +120,7 @@ SerialOSC.prototype.start = function () {
     });
     // if not, create it, start it, add it to devices array
     if (!device) {
-      var encoders = deviceOpts.model.match(/monome arc (\d)/);
+      var encoders = parseInt(deviceOpts.model.match(/monome arc (\d)/), 10);
       if (encoders) {
         device = new Arc();
         deviceOpts.type = 'arc';
