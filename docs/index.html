@@ -41,27 +41,38 @@
 
 
     <section>
-        <article><h1>node-serialosc</h1><p>monome serialosc node interface</p>
-<h1>simple example</h1><pre class="prettyprint source lang-javascript"><code>var SerialOSC = require('./app');
-var serialosc = new SerialOSC();
+        <article><h1>node-serialosc</h1><p>node-serialosc allows easy integration with monome grid and arc devices.</p>
+<h1>Simple Example</h1><p>This example script will listen for devices and attach a key handler that sets the corresponding led:</p>
+<pre class="prettyprint source lang-javascript"><code>var serialosc = require('serialosc');
 serialosc.start();
 serialosc.on('device:add', function (device) {
   device.on('key', function (data) {
     device.set(data);
   });
-});</code></pre><h1>configuration</h1><p>you can pass configuration options to the SerialOSC constructor</p>
-<pre class="prettyprint source lang-javascript"><code>var serialosc = new SerialOSC({
-  host: 'localhost',
-  port: 4200,
-  serialoscHost: 'locahost',
-  serialoscPort: 12002
-});</code></pre><h1>events</h1><p>you can listen for device:add or device:remove events</p>
+});</code></pre><h1>Configuration</h1><p>You can pass configuration options to the start method:</p>
+<pre class="prettyprint source lang-javascript"><code>serialosc.start({
+  host: 'localhost',         // ip/hostname to listen on
+  port: 4200,                // port to listen on
+  serialoscHost: 'locahost', // ip/hostname where serialosc is running
+  serialoscPort: 12002       // port where serialosc is running
+});</code></pre><h1>Events</h1><p>You can listen for device:add or device:remove events</p>
 <pre class="prettyprint source lang-javascript"><code>serialosc.on('device:add', function (device) {
 });
 
 serialosc.on('device:remove', function (device) {
-});</code></pre><h1>devices</h1><p>devices are passed through device:add events, you can also access an array of devices at serialosc.devices</p>
-<pre class="prettyprint source lang-javascript"><code>// an example device
+});</code></pre><p>You can also listen by device id:</p>
+<pre class="prettyprint source lang-javascript"><code>serialosc.on('m1000079:add', function (device) {
+});
+
+serialosc.on('m1000079:remove', function (device) {
+});
+
+# Devices
+
+Devices are passed through device:add events.  You can also access an array of devices at serialosc.devices
+
+```javascript
+// an example device
 {
   id: 'm40h0800',
   type: 'monome 40h',
@@ -70,13 +81,13 @@ serialosc.on('device:remove', function (device) {
   deviceHost: 'localhost',
   devicePort: 11109,
   connected: true
-}</code></pre><p>you can listen for key events from devices, the press object has x, y, and s attributes</p>
+}</code></pre><h2>Grid Devices</h2><p>Use device.on('key', callback) to listen for key press events.  Press events are objects in the form {x: ..., y: ..., s: ...}:</p>
 <pre class="prettyprint source lang-javascript"><code>device.on('key', function (press) {
-
-});</code></pre><p>you can send set, col, row, all, and map commands to a device</p>
+  console.log(press); // {x: 1, y: 2, s: 1}
+});</code></pre><p>You can set the LEDs of a grid device using the following methods:</p>
 <pre class="prettyprint source lang-javascript"><code>device.set(4, 6, 1);
 // alternate set syntax
-device.set({ x: 4, y: 6, s: 1 });
+device.set({x: 4, y: 6, s: 1});
 device.col(3, 0, 255);
 device.row(0, 3, 255);
 device.all(1);
@@ -93,6 +104,43 @@ device.map(0, 0, [
   [1, 0, 1, 0, 1, 0, 1, 0],
   [0, 1, 0, 1, 0, 1, 0, 1],
   [1, 0, 1, 0, 1, 0, 1, 0]
+]);</code></pre><p>For varibright devices:</p>
+<pre class="prettyprint source lang-javascript"><code>device.levelSet(4, 6, 15);
+// alternate set syntax
+device.levelSet({x: 4, y: 6, l: 15});
+device.levelCol(3, 0, [0, 1, 2, 3, 4, 5, 6, 7]);
+device.levelRow(0, 3, [0, 1, 2, 3, 4, 5, 6, 7]);
+device.levelAll(15);
+device.levelMap(0, 0, [
+  15, 15, 15, 15, 15, 15, 15, 15,
+  15, 15, 15, 15, 15, 15, 15, 15,
+  15, 15, 15, 15, 15, 15, 15, 15,
+  15, 15, 15, 15, 15, 15, 15, 15,
+  15, 15, 15, 15, 15, 15, 15, 15,
+  15, 15, 15, 15, 15, 15, 15, 15,
+  15, 15, 15, 15, 15, 15, 15, 15,
+  15, 15, 15, 15, 15, 15, 15, 15
+]);</code></pre><h2>Arc Devices</h2><p>Use device.on('key', callback) to listen for encoder press events.  Press events are objects in the form {n: ..., s: ...}:</p>
+<pre class="prettyprint source lang-javascript"><code>device.on('key', function (press) {
+  console.log(press); // {n: 0, s: 1}
+});</code></pre><p>Use device.on('delta', callback) to listen for encoder delta events.  Delta events are objects in the form {n: ..., d: ...}:</p>
+<pre class="prettyprint source lang-javascript"><code>device.on('delta', function (delta) {
+  console.log(delta); // {n: 0, d: -2}
+});</code></pre><p>You can set the LEDs of an arc device using the following methods:</p>
+<pre class="prettyprint source lang-javascript"><code>device.set(0, 32, 15);
+// alternate set syntax
+device.set({n: 0, x: 32, l: 15});
+device.range(0, 10, 20, 15);
+device.all(0, 15);
+device.map(0, [
+  15, 15, 15, 15, 15, 15, 15, 15,
+  15, 15, 15, 15, 15, 15, 15, 15,
+  15, 15, 15, 15, 15, 15, 15, 15,
+  15, 15, 15, 15, 15, 15, 15, 15,
+  15, 15, 15, 15, 15, 15, 15, 15,
+  15, 15, 15, 15, 15, 15, 15, 15,
+  15, 15, 15, 15, 15, 15, 15, 15,
+  15, 15, 15, 15, 15, 15, 15, 15
 ]);</code></pre></article>
     </section>
 
@@ -110,7 +158,7 @@ device.map(0, 0, [
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha9</a> on Wed Jul 16 2014 19:51:41 GMT-0700 (MST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha9</a> on Sat Feb 14 2015 11:26:32 GMT-0700 (MST)
 </footer>
 
 <script> prettyPrint(); </script>
