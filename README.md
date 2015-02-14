@@ -75,7 +75,13 @@ Devices are passed through device:add events.  You can also access an array of d
 
 ## Grid Devices
 
-Use device.on('key', callback) to listen for key press events.  Press events are objects in the form {x: ..., y: ..., s: ...}:
+Use device.on('key', callback) to listen for key press events.  Press events are objects in the form: 
+
+```
+{x: ..., y: ..., s: ...}:
+```
+
+Example:
 
 ```javascript
 device.on('key', function (press) {
@@ -131,7 +137,13 @@ device.levelMap(0, 0, [
 
 ## Arc Devices
 
-Use device.on('key', callback) to listen for encoder press events.  Press events are objects in the form {n: ..., s: ...}:
+Use device.on('key', callback) to listen for encoder press events.  Press events are objects in the form:
+
+```
+{n: ..., s: ...}:
+```
+
+Example:
 
 ```javascript
 device.on('key', function (press) {
@@ -139,7 +151,13 @@ device.on('key', function (press) {
 });
 ```
 
-Use device.on('delta', callback) to listen for encoder delta events.  Delta events are objects in the form {n: ..., d: ...}:
+Use device.on('delta', callback) to listen for encoder delta events.  Delta events are objects in the form:
+
+```
+{n: ..., d: ...}:
+```
+
+Example:
 
 ```javascript
 device.on('delta', function (delta) {
