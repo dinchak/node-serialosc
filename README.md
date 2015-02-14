@@ -28,9 +28,26 @@ You can pass configuration options to the start method:
 ```javascript
 serialosc.start({
   host: 'localhost',         // ip/hostname to listen on
-  port: 4200,                // port to listen on
+  port: 4200,                // port to listen on (default = random port number)
   serialoscHost: 'locahost', // ip/hostname where serialosc is running
-  serialoscPort: 12002       // port where serialosc is running
+  serialoscPort: 12002,      // port where serialosc is running
+  startDevices: true         // auto-start devices
+});
+```
+
+If startDevices is set to false you will need to start the device manually and listen for the initialized event.  This can be helpful if you want to run multiple applications but only initialize certain devices in each application.  For example:
+
+```javascript
+serialosc.start({
+  startDevices: false
+});
+serialosc.on('m1000079:add', function (device) {
+  device.start();
+  device.on('initialized', function () {
+    device.on('key', function (data) {
+      device.set(data);
+    });
+  });
 });
 ```
 

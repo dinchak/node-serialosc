@@ -73,10 +73,10 @@ SerialOSC.prototype.start = function (opts) {
 
   /**
    * The port number this process listens on
-   * default: 4200
+   * default: random port number
    * @type {Number}
    */
-  this.port = opts.port || 4200;
+  this.port = opts.port || Math.floor(Math.random() * 64512) + 1024;
 
   /**
    * The hostname serialosc is listening on
@@ -91,6 +91,16 @@ SerialOSC.prototype.start = function (opts) {
    * @type {Number}
    */
   this.serialoscPort = opts.serialoscPort || 12002;
+
+  /**
+   * Automatically start / initalize devices when discovered
+   * default: true
+   * @type {Boolean}
+   */
+  this.startDevices = true;
+  if (typeof opts.startDevices != 'undefined') {
+    this.startDevices = opts.startDevices;
+  }
 
   // begin listening on the app's serialosc listen host/port
   receiver.bind(this.port, this.host);
@@ -126,12 +136,17 @@ SerialOSC.prototype.start = function (opts) {
         deviceOpts.type = 'grid';
       }
       device.config(deviceOpts);
-      device.start();
       self.devices.push(device);
-      device.on('initialized', function () {
+      if (self.startDevices) {
+        device.start();
+        device.on('initialized', function () {
+          self.emit(device.id + ':add', device);
+          self.emit('device:add', device);
+        });
+      } else {
         self.emit(device.id + ':add', device);
         self.emit('device:add', device);
-      });
+      }
     }
   });
 
