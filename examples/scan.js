@@ -1,6 +1,4 @@
-var SerialOSC = require('./index');
-
-var serialosc = new SerialOSC();
+var serialosc = require('../serialosc');
 serialosc.start();
 serialosc.on('device:add', function (device) {
   console.log('found ' + device.id + ' at ' + device.deviceHost + ':' + device.devicePort);

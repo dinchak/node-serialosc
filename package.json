@@ -2,7 +2,7 @@
   "name": "serialosc",
   "version": "0.0.1",
   "description": "monome serialosc interface",
-  "main": "index.js",
+  "main": "serialosc.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

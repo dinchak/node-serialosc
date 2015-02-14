@@ -29,6 +29,27 @@ var serialoscEmitter = new OscEmitter();
  * serialosc running either on the local computer
  * or another computer on the network.
  *
+ * @constructor
+ */
+var SerialOSC = function () {
+  /**
+   * An array of all devices that have been seen
+   * @type {Array}
+   */
+  this.devices = [];
+};
+
+/**
+ * Extend the EventEmitter prototype
+ * Provides .on(), .emit(), etc.
+ */
+SerialOSC.prototype = Object.create(EventEmitter.prototype);
+
+/**
+ * Begin listening for serialosc messages on host/port
+ * Request a list of devices from serialosc
+ * Emit 'device:add' and 'device:remove' events
+ *
  * The following options can be passed:
  *
  * opts.host -- the hostname to listen on (default: localhost)
@@ -39,19 +60,8 @@ var serialoscEmitter = new OscEmitter();
  *                       (default 12002)
  * 
  * @param {Object} opts options object
- * @constructor
  */
-var SerialOSC = function (opts) {
-  /**
-   * An array of all devices that have been seen
-   * @type {Array}
-   */
-  this.devices = [];
-
-  /**
-   * Configuration options
-   * @type {Object}
-   */
+SerialOSC.prototype.start = function (opts) {
   opts = opts || {};
 
   /**
@@ -81,20 +91,6 @@ var SerialOSC = function (opts) {
    * @type {Number}
    */
   this.serialoscPort = opts.serialoscPort || 12002;
-};
-
-/**
- * Extend the EventEmitter prototype
- * Provides .on(), .emit(), etc.
- */
-SerialOSC.prototype = Object.create(EventEmitter.prototype);
-
-/**
- * Begin listening for serialosc messages on host/port
- * Request a list of devices from serialosc
- * Emit 'device:add' and 'device:remove' events
- */
-SerialOSC.prototype.start = function () {
 
   // begin listening on the app's serialosc listen host/port
   receiver.bind(this.port, this.host);
@@ -133,6 +129,7 @@ SerialOSC.prototype.start = function () {
       device.start();
       self.devices.push(device);
       device.on('initialized', function () {
+        self.emit(device.id + ':add', device);
         self.emit('device:add', device);
       });
     }
@@ -160,6 +157,7 @@ SerialOSC.prototype.start = function () {
     // then let listeners know a device was removed
     if (device) {
       device.stop();
+      self.emit(device.id + ':remove', device);
       self.emit('device:remove', device);
     }
     // reattach notify handler after every /serialosc/remove request
@@ -174,4 +172,4 @@ SerialOSC.prototype.start = function () {
   serialoscEmitter.emit('/serialosc/list', self.host, self.port);
 };
 
-module.exports = SerialOSC;
+module.exports = new SerialOSC();
