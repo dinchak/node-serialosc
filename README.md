@@ -1,7 +1,11 @@
 node-serialosc
 ==============
 
-node-serialosc allows easy integration with monome grid and arc devices.
+node-serialosc allows easy integration with monome grid and arc devices.  You can install it via npm:
+
+```
+npm install serialosc
+```
 
 # Simple Example
 
@@ -50,6 +54,7 @@ serialosc.on('m1000079:add', function (device) {
 
 serialosc.on('m1000079:remove', function (device) {
 });
+```
 
 # Devices
 
