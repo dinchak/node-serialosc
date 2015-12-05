@@ -1,6 +1,6 @@
 {
   "name": "serialosc",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "monome serialosc interface",
   "main": "serialosc.js",
   "scripts": {
