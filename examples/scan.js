@@ -1,5 +1,4 @@
 var serialosc = require('../serialosc');
-serialosc.start();
 serialosc.on('device:add', function (device) {
   console.log('found ' + device.id + ' at ' + device.deviceHost + ':' + device.devicePort);
   if (device.type == 'grid') {
@@ -31,3 +30,4 @@ serialosc.on('device:add', function (device) {
     console.log(device.id + ' disconnected');
   });
 });
+serialosc.start();

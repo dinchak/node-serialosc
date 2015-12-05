@@ -3,26 +3,13 @@
  * @author Tom Dinchak <dinchak@gmail.com>
  */
 
+var util = require('util');
 var _ = require('underscore');
 var OscReceiver = require('osc-receiver');
 var OscEmitter = require('osc-emitter');
 var EventEmitter = require('events').EventEmitter;
 var Grid = require('./lib/grid');
 var Arc = require('./lib/arc');
-
-/**
- * Receives OSC messages from serialosc directly
- * ie. not messages from actual devices
- * @type {OscReceiver}
- */
-var receiver = new OscReceiver();
-
-/**
- * Sends OSC messages to serialosc server directly
- * ie. not messages to actual devices
- * @type {OscEmitter}
- */
-var serialoscEmitter = new OscEmitter();
 
 /**
  * The SerialOSC object represents an instance of
@@ -37,13 +24,27 @@ var SerialOSC = function () {
    * @type {Array}
    */
   this.devices = [];
+
+  /**
+   * Receives OSC messages from serialosc directly
+   * ie. not messages from actual devices
+   * @type {OscReceiver}
+   */
+  this.receiever = null;
+
+  /**
+   * Sends OSC messages to serialosc server directly
+   * ie. not messages to actual devices
+   * @type {OscEmitter}
+   */
+  this.serialoscEmitter = null;
 };
 
 /**
  * Extend the EventEmitter prototype
  * Provides .on(), .emit(), etc.
  */
-SerialOSC.prototype = Object.create(EventEmitter.prototype);
+util.inherits(SerialOSC, EventEmitter);
 
 /**
  * Begin listening for serialosc messages on host/port
@@ -102,25 +103,48 @@ SerialOSC.prototype.start = function (opts) {
     this.startDevices = opts.startDevices;
   }
 
-  // begin listening on the app's serialosc listen host/port
-  receiver.bind(this.port, this.host);
+  if (!this.serialoscEmitter) {
+    // create osc emitter to send to serialosc
+    this.serialoscEmitter = new OscEmitter();
+    // add the serialosc host/port to the emitter broadcast list
+    this.serialoscEmitter.add(this.serialoscHost, this.serialoscPort);
+  }
 
-  // reference to the current SerialOSC object instance
-  var self = this;
+  // attach notify handler
+  this.serialoscEmitter.emit('/serialosc/notify', this.host, this.port);
+  // begin listening on osc receiver
+  this.startOSCReceiver();
+  // request a list of devices
+  this.serialoscEmitter.emit('/serialosc/list', this.host, this.port);
+};
+
+SerialOSC.prototype.startOSCReceiver = function () {
+  // receiver already active
+  if (this.receiver) {
+    return;
+  }
+
+  console.log('create osc receiver');
+  // create new instance of OscReceiver
+  this.receiver = new OscReceiver();
+
+  // begin listening on the app's serialosc listen host/port
+  this.receiver.bind(this.port, this.host);
 
   // called when serialosc tells us about a device
   // ie. in response to /serialosc/list
-  receiver.on('/serialosc/device', function () {
+  this.receiver.on('/serialosc/device', function () {
+    console.log('device received');
     // configure what we know about this device
     var deviceOpts = {
       id: arguments[0],
       model: arguments[1],
-      host: self.host,
-      deviceHost: self.serialoscHost,
+      host: this.host,
+      deviceHost: this.serialoscHost,
       devicePort: arguments[2]
     };
     // check if we already know about this device
-    var device = _.findWhere(self.devices, {
+    var device = _.findWhere(this.devices, {
       id: deviceOpts.id,
       devicePort: deviceOpts.devicePort
     });
@@ -136,35 +160,35 @@ SerialOSC.prototype.start = function (opts) {
         deviceOpts.type = 'grid';
       }
       device.config(deviceOpts);
-      self.devices.push(device);
-      if (self.startDevices) {
+      this.devices.push(device);
+      if (this.startDevices) {
         device.start();
         device.on('initialized', function () {
-          self.emit(device.id + ':add', device);
-          self.emit('device:add', device);
-        });
+          this.emit(device.id + ':add', device);
+          this.emit('device:add', device);
+        }.bind(this));
       } else {
-        self.emit(device.id + ':add', device);
-        self.emit('device:add', device);
+        this.emit(device.id + ':add', device);
+        this.emit('device:add', device);
       }
     }
-  });
+  }.bind(this));
 
   // when serialosc detects a device has been plugged in
   // send /serialosc/list and handle it from /serialosc/device
   // handler above
-  receiver.on('/serialosc/add', function () {
-    serialoscEmitter.emit('/serialosc/list', self.host, self.port);
+  this.receiver.on('/serialosc/add', function () {
+    this.serialoscEmitter.emit('/serialosc/list', this.host, this.port);
     // reattach notify handler after every /serialosc/add request
-    serialoscEmitter.emit('/serialosc/notify', self.host, self.port);
-  });
+    this.serialoscEmitter.emit('/serialosc/notify', this.host, this.port);
+  }.bind(this));
 
   // when serialosc detects a device has been unplugged
-  receiver.on('/serialosc/remove', function () {
+  this.receiver.on('/serialosc/remove', function () {
     var id = arguments[0];
     var devicePort = arguments[2];
     // see if we know about this device (we should)
-    var device = _.findWhere(self.devices, {
+    var device = _.findWhere(this.devices, {
       id: id,
       devicePort: devicePort
     });
@@ -172,19 +196,25 @@ SerialOSC.prototype.start = function (opts) {
     // then let listeners know a device was removed
     if (device) {
       device.stop();
-      self.emit(device.id + ':remove', device);
-      self.emit('device:remove', device);
+      this.emit(device.id + ':remove', device);
+      this.emit('device:remove', device);
     }
     // reattach notify handler after every /serialosc/remove request
-    serialoscEmitter.emit('/serialosc/notify', self.host, self.port);
-  });
+    this.serialoscEmitter.emit('/serialosc/notify', this.host, this.port);
+  }.bind(this));
+};
 
-  // add the serialosc host/port to the emitter broadcast list
-  serialoscEmitter.add(self.serialoscHost, self.serialoscPort);
-  // attach notify handler
-  serialoscEmitter.emit('/serialosc/notify', self.host, self.port);
-  // request a list of devices
-  serialoscEmitter.emit('/serialosc/list', self.host, self.port);
+SerialOSC.prototype.stop = function () {
+  // receiver not active
+  if (!this.receiver) {
+    return;
+  }
+
+  // remove all listeners and close the socket
+  this.receiver.removeAllListeners();
+  this.receiver._socket.close();
+  this.receiver = null;
+  this.devices = [];
 };
 
 module.exports = new SerialOSC();
