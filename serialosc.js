@@ -124,7 +124,6 @@ SerialOSC.prototype.startOSCReceiver = function () {
     return;
   }
 
-  console.log('create osc receiver');
   // create new instance of OscReceiver
   this.receiver = new OscReceiver();
 
@@ -134,7 +133,6 @@ SerialOSC.prototype.startOSCReceiver = function () {
   // called when serialosc tells us about a device
   // ie. in response to /serialosc/list
   this.receiver.on('/serialosc/device', function () {
-    console.log('device received');
     // configure what we know about this device
     var deviceOpts = {
       id: arguments[0],
