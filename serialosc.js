@@ -94,6 +94,13 @@ SerialOSC.prototype.start = function (opts) {
   this.serialoscPort = opts.serialoscPort || 12002;
 
   /**
+   * Add a debug mode that monitors all OSC communication
+   * default: false
+   * @type {Boolean}
+   */
+  this.debug = opts.debug || false;
+
+  /**
    * Automatically start / initalize devices when discovered
    * default: true
    * @type {Boolean}
@@ -108,6 +115,16 @@ SerialOSC.prototype.start = function (opts) {
     this.serialoscEmitter = new OscEmitter();
     // add the serialosc host/port to the emitter broadcast list
     this.serialoscEmitter.add(this.serialoscHost, this.serialoscPort);
+  }
+
+  if (this.debug) {
+    var emit = this.serialoscEmitter.emit;
+    this.serialoscEmitter.emit = function () {
+      var args = Array.prototype.slice.call(arguments);
+      emit.apply(this.serialoscEmitter, args);
+      console.log('to serialosc: ' + args.shift());
+      console.log(args);
+    }.bind(this);
   }
 
   // attach notify handler
@@ -130,6 +147,14 @@ SerialOSC.prototype.startOSCReceiver = function () {
   // begin listening on the app's serialosc listen host/port
   this.receiver.bind(this.port, this.host);
 
+  if (this.debug) {
+    this.receiver.on('message', function () {
+      var args = Array.prototype.slice.call(arguments);
+      console.log('from serialosc: ' + args.shift());
+      console.log(args);
+    });
+  }
+
   // called when serialosc tells us about a device
   // ie. in response to /serialosc/list
   this.receiver.on('/serialosc/device', function () {
@@ -150,11 +175,11 @@ SerialOSC.prototype.startOSCReceiver = function () {
     if (!device) {
       var encoders = deviceOpts.model.match(/monome arc (\d)/);
       if (encoders) {
-        device = new Arc();
+        device = new Arc(this);
         deviceOpts.type = 'arc';
         deviceOpts.encoders = parseInt(encoders[1], 10);
       } else {
-        device = new Grid();
+        device = new Grid(this);
         deviceOpts.type = 'grid';
       }
       device.config(deviceOpts);
