@@ -173,11 +173,16 @@ SerialOSC.prototype.startOSCReceiver = function () {
     });
     // if not, create it, start it, add it to devices array
     if (!device) {
-      var encoders = deviceOpts.model.match(/monome arc (\d)/);
+      var encoders = deviceOpts.model.match(/monome arc ?(\d)?/);
       if (encoders) {
         device = new Arc(this);
         deviceOpts.type = 'arc';
-        deviceOpts.encoders = parseInt(encoders[1], 10);
+        if (encoders[1]) {
+          deviceOpts.encoders = parseInt(encoders[1], 10);
+        // new arc identifies simply as "monome arc" and has 4 encoders
+        } else {
+          deviceOpts.encoders = 4;
+        }
       } else {
         device = new Grid(this);
         deviceOpts.type = 'grid';
